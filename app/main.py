@@ -1,5 +1,40 @@
 import asyncio
-from .encoders import RESP_Simple_String
+from . import commands as redis_commands
+from typing import List
+from . import encoders as redis_encoders
+
+
+def parse_command(command: bytes) -> List[str]:
+    command_string = command.decode()
+    # limit string to only commands by trimming the beginning
+    # of the command string which contains the number of
+    # commands being sent to the redis server
+    first_element = command_string.find(
+        "$"
+    )  # find first instance of '$' which is in front of each command
+    commands = command_string[first_element + 1 :].split(
+        "$"
+    )  # `first_element + 1` to avoid an empty element in the beginning
+
+    decoded_commands = []
+    for comm in commands:
+        decoded_commands.append(redis_encoders.bulk_string(comm, decode=True))
+
+    print(decoded_commands)
+    return decoded_commands
+
+
+def handle_input(input_data) -> bytes:
+    commands = []  # array of all commands given by the client
+    commands = parse_command(input_data)
+
+    # The first command is the function we need to call
+    function = commands[0]
+
+    if function.lower() == "echo":
+        return redis_commands.echo(commands[1])
+    elif function.lower() == "ping":
+        return redis_commands.ping()
 
 
 async def handle_connections(
@@ -10,7 +45,7 @@ async def handle_connections(
         if not data:
             break
 
-        writer.write(RESP_Simple_String("PONG"))
+        writer.write(handle_input(data))
         await writer.drain()  # flush the writer
 
     writer.close()
