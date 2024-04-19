@@ -29,12 +29,16 @@ def handle_input(input_data) -> bytes:
     commands = parse_command(input_data)
 
     # The first command is the function we need to call
-    function = commands[0]
+    function = commands[0].lower()
 
-    if function.lower() == "echo":
+    if function == "echo":
         return redis_commands.echo(commands[1])
-    elif function.lower() == "ping":
+    elif function == "ping":
         return redis_commands.ping()
+    elif function == "set":
+        return redis_commands.set_(commands)
+    elif function == "get":
+        return redis_commands.get(commands)
 
 
 async def handle_connections(
