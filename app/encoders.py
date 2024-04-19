@@ -27,3 +27,7 @@ def bulk_string(data: str, decode=False) -> bytes | str:
         # The end is before the last instance of CRLF
         end = data.rfind("\r\n")
         return data[start:end]
+
+
+def null_bulk_string() -> bytes:
+    return "$-1\r\n".encode(encoding="utf-8")
