@@ -1,4 +1,4 @@
-from . import encoders
+from . import encoders, database
 
 
 def ping() -> bytes:
@@ -7,3 +7,12 @@ def ping() -> bytes:
 
 def echo(commands) -> bytes:
     return encoders.bulk_string(commands)
+
+
+def set_(command) -> bytes:
+    database.cache[command[1]] = command[2]
+    return encoders.simple_string("OK")
+
+
+def get(command) -> bytes:
+    return encoders.bulk_string(database.cache[command[1]])
