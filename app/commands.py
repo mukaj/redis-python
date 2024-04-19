@@ -1,4 +1,5 @@
 from . import encoders, database
+from datetime import datetime, timedelta
 
 
 def ping() -> bytes:
@@ -10,9 +11,20 @@ def echo(commands) -> bytes:
 
 
 def set_(command) -> bytes:
-    database.cache[command[1]] = command[2]
+    entry = database.Entry(command[2])
+    if len(command) > 3: # Check if there are any additional command line arguments (such as PX)
+        entry.timeout = datetime.now() + timedelta(milliseconds=int(command[4]))
+    database.cache[command[1]] = entry
     return encoders.simple_string("OK")
 
 
 def get(command) -> bytes:
-    return encoders.bulk_string(database.cache[command[1]])
+    time_now = datetime.now()
+    entry: database.Entry = database.cache.get(command[1], None)
+    if entry is None:
+        return encoders.null_bulk_string()
+
+    if entry.timeout and entry.timeout < time_now:
+        return encoders.null_bulk_string()
+
+    return encoders.bulk_string(entry.data)
