@@ -30,3 +30,11 @@ def get(command) -> bytes:
         return encoders.null_bulk_string()
 
     return encoders.bulk_string(entry.data)
+
+
+def type_(command) -> bytes:
+    entry: database.Entry = database.cache.get(command[1], None)
+    if entry is None:
+        return encoders.simple_string("none")
+    else:
+        return encoders.simple_string("string")

@@ -39,6 +39,8 @@ def handle_input(input_data) -> bytes:
         return redis_commands.set_(commands)
     elif function == "get":
         return redis_commands.get(commands)
+    elif function == "type":
+        return redis_commands.type_(commands)
 
 
 async def handle_connections(
